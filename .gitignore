@@ -9,3 +9,4 @@ mac_hdd.img
 *.dist
 *.smd
 *.dmg
+my_ovmf
