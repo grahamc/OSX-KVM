@@ -98,6 +98,7 @@ for "term", and pressing Enter on "Terminal"
     generic disk image too soon.
 34. Disable the protections preventing you from running unsigned software:
 `sudo spctl --master-disable`
+35. Disable sleep: `sudo systemsetup -setcomputersleep Never`
 35. Enable automatically mounting ISOs, even before users log in: `sudo
 defaults write /Library/Preferences/SystemConfiguration/autodiskmount
 AutomountDisksWithoutUserLogin -bool YES`
