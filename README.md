@@ -14,67 +14,84 @@ The upstream OSX-KVM repo is patched to use our own qcow's and OVMF files.
 
 1. Follow the installation preparation steps from
 [OSX-KVM](https://github.com/kholia/OSX-KVM/tree/bda4cc8e698356510c27747b7a929339f450890c#installation-preparation):
+    * Configure KVM to `ignore_msrs` on the **host** running the VM(s)
+    -- this can be achieved by adding the following configuration (a
+    configuration switch and reboot will be necessary):
+
+      ```nix
+      {
+        boot.kernelParams = [
+          "kvm.ignore_msrs=1" # according to OSX-KVM, this is required
+          "kvm.report_ignored_msrs=0" # these ignored msrs are harmless, so don't let them clog up dmesg
+        ];
+      }
+      ```
+
+      > **NOTE**: To apply these without a reboot, you may `echo
+      1 > /sys/module/kvm/parameters/ignore_msrs` and `echo 0 >
+      /sys/module/kvm/parameters/report_ignored_msrs` (as root).
+
     * Run `./fetch-macOS.py` and select the latest version of Catalina
     * Run `qemu-img convert BaseSystem.dmg -O raw BaseSystem.img`
     * Run `qemu-img create -f qcow2 mac_hdd_ng.img 128G`
     * You may ignore the networking setup; our modified
     `./boot-macOS-Catalina.sh` script sets up user-mode networking instead
-2. Run `./boot-macOS-Catalina.sh` and boot from the install disk (may take a while)
+1. Run `./boot-macOS-Catalina.sh` and boot from the install disk (may take a while)
     * You will want a VNC client -- I used tigervnc's `vncviewer`
     and forwarded the VNC port to my local system with `ssh -L
     5900:localhost:5900 user@remote-machine-running-qemu` then
     `nix-shell -p tigervnc --run "vncviewer 127.0.0.1:5900"`
-3. Select the "English" language
-4. Select "Disk Utility"
-5. Select the "QEMU HARDDISK Media" disk (around 130GB, "uninitialized")
-6. Click "Erase" (in the top middle), set the Name to "system" (exactly;
+1. Select the "English" language
+1. Select "Disk Utility"
+1. Select the "QEMU HARDDISK Media" disk (around 130GB, "uninitialized")
+1. Click "Erase" (in the top middle), set the Name to "system" (exactly;
 case matters!), Format to "Mac OS Extended (Journaled)", and Scheme to
 "GUID Partition Map"
-7. Click "Erase" and then "Done"
-8. Exit Disk Utility by clicking the red exit button at the top left
-9. Select "Reinstall macOS" and click "Continue"
-10. Click "Continue"
-11. Click "Agree" and click "Agree" in the dialog that pops up
-12. Select the "system" disk and click "Install"
+1. Click "Erase" and then "Done"
+1. Exit Disk Utility by clicking the red exit button at the top left
+1. Select "Reinstall macOS" and click "Continue"
+1. Click "Continue"
+1. Click "Agree" and click "Agree" in the dialog that pops up
+1. Select the "system" disk and click "Install"
     * This will take a bit of time (roughly 30 minutes, but may be more or less)
-14. Once the install process gets to the "Welcome" screen where you select
+1. Once the install process gets to the "Welcome" screen where you select
 a physical location, Ctrl-C the QEMU process and copy the disk image
 (`mac_hdd_ng.img`) to another location for safe keeping. This duplicated
 image will be used for future fresh re-setting-up like major upgrades.
 
 
-15. Restart the VM with `./boot-macOS-Catalina.sh` and reconnect to VNC
+1. Restart the VM with `./boot-macOS-Catalina.sh` and reconnect to VNC
     * Wait 3 seconds for macOS to automatically boot
-16. Select "United States" and click "Continue"
-17. Click "Continue" on the "Written and Spoken Languages" page
-18. Click "Continue" on the "Data & Privacy" page
-19. Select "Don't transfer any information now" (if it isn't already)
+1. Select "United States" and click "Continue"
+1. Click "Continue" on the "Written and Spoken Languages" page
+1. Click "Continue" on the "Data & Privacy" page
+1. Select "Don't transfer any information now" (if it isn't already)
 and click "Continue" on the "Transfer Information to This Mac" page
-20. Click "Set Up Later" on the "Sign In with Your Apple ID" page
+1. Click "Set Up Later" on the "Sign In with Your Apple ID" page
     * Confirm by clicking "Skip" on the dialog that pops up
-21. Click "Agree" on the "Terms and Conditions" page
+1. Click "Agree" on the "Terms and Conditions" page
     * Confirm by clicking "Agree" on the dialog that pops up
-22. Create a user:
+1. Create a user:
     * Full name: `nixos`
     * Account name: `nixos`
     * Password: generate a new one each time, note: nixos is not a good password =)
       * NOTE: You will need to remember this
     * Hint: leave blank for no hint
-23. Click "Customize Settings" on the "Express Set Up" page
-24. Ensure the box next to "Enable Location Services on this Mac"
+1. Click "Customize Settings" on the "Express Set Up" page
+1. Ensure the box next to "Enable Location Services on this Mac"
 is unticked (disabled) on the "Enable Location Services" page
     * Confirm by clicking "Don't Use" on the dialog that pops up
-25. Select your timezone: "UTC - United Kingdom" and click "Continue"
-26. Ensure both boxes on the "Analytics" page are not ticked ("Share
+1. Select your timezone: "UTC - United Kingdom" and click "Continue"
+1. Ensure both boxes on the "Analytics" page are not ticked ("Share
 Mac Analytics with Apple" was enabled by default -- untick that)
-27. Click "Set Up Later" on the "Screen Time" page
-28. Ensure the box next to "Enable Ask Siri" on the "Siri" page is
+1. Click "Set Up Later" on the "Screen Time" page
+1. Ensure the box next to "Enable Ask Siri" on the "Siri" page is
 not ticked and click "Continue"
-29. Click "Continue" on the "Choose Your Look" page
-30. You'll reach the desktop where macOS will try to configure the
+1. Click "Continue" on the "Choose Your Look" page
+1. You'll reach the desktop where macOS will try to configure the
 keyboard; click "Continue", press `z` and then `/`, make sure `ANSI`
 is selected, and click "Done"
-31. Set up Full Disk Access for the terminal:
+1. Set up Full Disk Access for the terminal:
     * Click the magnifying glass in the top bar (top right corner), search for "term", and press Enter on "Terminal"
     * Close the "Terminal" window
     * Click the Apple icon (top left)
@@ -90,21 +107,21 @@ is selected, and click "Done"
     * Then select the "Terminal" application under the "Today" header
       * **NOTE**: To ensure this is the right "Terminal" make sure the path displayed on the bottom of the window starts with "system" (the Name we defined when erasing the disk earlier) and not "macOS Base System"
     * Close that window by clicking the red close button on the top left
-32. Open the "Terminal" again by clicking the magnifying glass in the top bar (top right corner), searching
+1. Open the "Terminal" again by clicking the magnifying glass in the top bar (top right corner), searching
 for "term", and pressing Enter on "Terminal"
-33. Run `sudo systemsetup -setremotelogin on` to turn on SSH.
+1. Run `sudo systemsetup -setremotelogin on` to turn on SSH.
     * IMPORTANT: DO NOT TEST SSH AT THIS STAGE! Testing SSH now would cause
     the image to generate an SSH host key, and cause it to be fixed in a
     generic disk image too soon.
-34. Disable the protections preventing you from running unsigned software:
+1. Disable the protections preventing you from running unsigned software:
 `sudo spctl --master-disable`
-35. Disable sleep: `sudo systemsetup -setcomputersleep Never`
-35. Enable automatically mounting ISOs, even before users log in: `sudo
+1. Disable sleep: `sudo systemsetup -setcomputersleep Never`
+1. Enable automatically mounting ISOs, even before users log in: `sudo
 defaults write /Library/Preferences/SystemConfiguration/autodiskmount
 AutomountDisksWithoutUserLogin -bool YES`
-36. Bypass new Catalina protections that prevent autorunning scripts from
+1. Bypass new Catalina protections that prevent autorunning scripts from
 `/Volumes`: `sudo ln -s /Volumes/CONFIG/apply.sh ~root/apply.sh`
-37. Create an autorun script by writing the following contents to `/Library/LaunchDaemons/org.nixos.bootup.plist`:
+1. Create an autorun script by writing the following contents to `/Library/LaunchDaemons/org.nixos.bootup.plist`:
     * You can curl the GitHub shortlink https://git.io/JtyI9 (which points to https://gist.githubusercontent.com/grahamc/126b1a28d50d99db315fb5b6fce551c7/raw/db5a95ca6b3002e3518fb5817437b4314e6f4085/catalina-----%2520org.nixos.bootup.plist) to prevent having to type this mess
 
 ```xml
@@ -127,9 +144,9 @@ AutomountDisksWithoutUserLogin -bool YES`
 </plist>
 ```
 
-38. Close the terminal and select "Shut Down" from the Apple menu
-39. Deselect "Reopen windows when logging back in" and click "Shut Down"
-40. Duplicate `mac_hdd_ng.img` once more, to `mac_hdd_ng.configured.img`
+1. Close the terminal and select "Shut Down" from the Apple menu
+1. Deselect "Reopen windows when logging back in" and click "Shut Down"
+1. Duplicate `mac_hdd_ng.img` once more, to `mac_hdd_ng.configured.img`
 
 
 This image is used as the basis for hydra and ofborg builders.
