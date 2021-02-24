@@ -14,6 +14,23 @@ The upstream OSX-KVM repo is patched to use our own qcow's and OVMF files.
 
 1. Follow the installation preparation steps from
 [OSX-KVM](https://github.com/kholia/OSX-KVM/tree/bda4cc8e698356510c27747b7a929339f450890c#installation-preparation):
+    * Configure KVM to `ignore_msrs` on the **host** running the VM(s)
+    -- this can be achieved by adding the following configuration (a
+    configuration switch and reboot will be necessary):
+
+      ```nix
+      {
+        boot.kernelParams = [
+          "kvm.ignore_msrs=1" # according to OSX-KVM, this is required
+          "kvm.report_ignored_msrs=0" # these ignored msrs are harmless, so don't let them clog up dmesg
+        ];
+      }
+      ```
+
+      > **NOTE**: To apply these without a reboot, you may `echo
+      1 > /sys/module/kvm/parameters/ignore_msrs` and `echo 0 >
+      /sys/module/kvm/parameters/report_ignored_msrs` (as root).
+
     * Run `./fetch-macOS.py` and select the latest version of Catalina
     * Run `qemu-img convert BaseSystem.dmg -O raw BaseSystem.img`
     * Run `qemu-img create -f qcow2 mac_hdd_ng.img 128G`
